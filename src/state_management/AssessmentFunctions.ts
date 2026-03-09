@@ -9,7 +9,8 @@ interface AssessmentStore {
     parent: Assessment["parent"];
     child: Assessment["child"];
   }) => void;
-  setMuacAssessment: (data: Assessment["muac"]) => void;
+  setMuacPhotoUri: (photoUri: string | null) => void;
+  setMuacMeasurement: (measurement: number | null) => void;
   setEdemaAssessment: (data: Assessment["edema"]) => void;
   setHairAssessment: (data: Assessment["hair"]) => void;
   setDangerSigns: (data: Assessment["dangerSigns"]) => void;
@@ -29,11 +30,25 @@ export const useAssessmentStore = create<AssessmentStore>((set) => ({
       },
     })),
 
-  setMuacAssessment: (data) =>
+  setMuacPhotoUri: (photoUri) =>
     set((state) => ({
       assessment: {
         ...state.assessment,
-        muac: data,
+        muac: {
+          ...state.assessment.muac,
+          photoUri,
+        },
+      },
+    })),
+
+  setMuacMeasurement: (measurement) =>
+    set((state) => ({
+      assessment: {
+        ...state.assessment,
+        muac: {
+          ...state.assessment.muac,
+          measurement,
+        },
       },
     })),
 

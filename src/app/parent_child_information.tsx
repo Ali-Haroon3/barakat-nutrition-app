@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AppTextField from "../components/AppTextField";
+import AssessmentHeader from "../components/AssessmentHeader";
 import FormRow from "../components/FormRow";
 import NextButton from "../components/NextButton";
 import { useAssessmentStore } from "../state_management/AssessmentFunctions";
@@ -20,7 +21,7 @@ import { validateAndBuildChildAssessment1 } from "../validation/childAssessment1
 
 type GenderOption = "male" | "female" | null;
 
-export default function TestScreen() {
+export default function ParentChildInformation() {
   const setChildAssessment1 = useAssessmentStore(
     (state) => state.setChildAssessment1,
   );
@@ -61,11 +62,7 @@ export default function TestScreen() {
     }
 
     setChildAssessment1(result.value);
-    router.replace("/home");
-    console.log(
-      "Assessment after save:",
-      useAssessmentStore.getState().assessment,
-    );
+    router.push("/muac_instructions");
   };
 
   return (
@@ -76,18 +73,7 @@ export default function TestScreen() {
         keyboardVerticalOffset={Platform.OS === "ios" ? 8 : 0}
       >
         <View style={styles.container}>
-          <View style={styles.header}>
-            <Pressable
-              style={styles.backButton}
-              accessibilityRole="button"
-              accessibilityLabel="Back"
-              onPress={handleBack}
-            >
-              <Text style={styles.backIcon}>‹</Text>
-            </Pressable>
-            <Text style={styles.headerTitle}>Malnutrition Check-up</Text>
-            <View style={styles.headerSpacer} />
-          </View>
+          <AssessmentHeader title="Malnutrition Check-up" onBack={handleBack} />
 
           <View style={styles.tealDivider} />
 
@@ -267,34 +253,6 @@ const styles = StyleSheet.create({
   },
   keyboardAvoidingContainer: {
     flex: 1,
-  },
-  header: {
-    height: 86,
-    backgroundColor: colors.background.main,
-    paddingHorizontal: 10,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  backButton: {
-    width: 42,
-    height: 42,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  backIcon: {
-    color: colors.text.primary,
-    fontSize: 34,
-    lineHeight: 34,
-  },
-  headerTitle: {
-    flex: 1,
-    textAlign: "center",
-    color: colors.text.primary,
-    fontSize: 18,
-    fontWeight: "700",
-  },
-  headerSpacer: {
-    width: 42,
   },
   tealDivider: {
     height: 14,

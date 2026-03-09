@@ -21,7 +21,7 @@ export default function HomeScreen() {
 
         <View style={styles.buttonWrap}>
           <StartAssessmentButton
-            onPress={() => router.push("/child_assessment_1")}
+            onPress={() => router.push("/parent_child_information")}
           />
         </View>
       </View>
