@@ -14,6 +14,8 @@ interface AssessmentStore {
   setEdemaVideoUri: (videoUri: string | null) => void;
   setEdemaDentRemain: (dentRemain: Assessment["edema"]["dentRemain"]) => void;
   setEdemaAssessment: (data: Assessment["edema"]) => void;
+  setHairPhotoUri: (photoUri: string | null) => void;
+  setHairIssue: (hairIssue: Assessment["hair"]["hairIssue"]) => void;
   setHairAssessment: (data: Assessment["hair"]) => void;
   setDangerSigns: (data: Assessment["dangerSigns"]) => void;
 
@@ -81,6 +83,28 @@ export const useAssessmentStore = create<AssessmentStore>((set) => ({
       assessment: {
         ...state.assessment,
         edema: data,
+      },
+    })),
+
+  setHairPhotoUri: (photoUri) =>
+    set((state) => ({
+      assessment: {
+        ...state.assessment,
+        hair: {
+          ...state.assessment.hair,
+          photoUri,
+        },
+      },
+    })),
+
+  setHairIssue: (hairIssue) =>
+    set((state) => ({
+      assessment: {
+        ...state.assessment,
+        hair: {
+          ...state.assessment.hair,
+          hairIssue,
+        },
       },
     })),
 

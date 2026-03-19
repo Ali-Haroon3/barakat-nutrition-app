@@ -1,54 +1,56 @@
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
-  Alert,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
+    Alert,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AssessmentHeader from "../components/AssessmentHeader";
-import CapturedVideoPreview from "../components/CapturedVideoPreview";
+import CapturedMediaPreview from "../components/CapturedMediaPreview";
 import NextButton from "../components/NextButton";
 import { YesNoUnsure } from "../state_management/Assessment";
 import { useAssessmentStore } from "../state_management/AssessmentFunctions";
 import { colors } from "../theme/theme";
 import { validateAndBuildEdemaDentRemain } from "../validation/edemaReviewValidation";
 
-export default function EdemaReview() {
-  const videoUri = useAssessmentStore(
-    (state) => state.assessment.edema.videoUri,
+export default function HairSkinReview() {
+  const photoUri = useAssessmentStore(
+    (state) => state.assessment.hair.photoUri,
   );
-  const setEdemaDentRemain = useAssessmentStore(
-    (state) => state.setEdemaDentRemain,
-  );
-  const [dentRemain, setDentRemain] = useState<YesNoUnsure | null>(null);
+  const setHairIssue = useAssessmentStore((state) => state.setHairIssue);
+  const [hairIssue, setHairIssueSelection] = useState<YesNoUnsure | null>(null);
 
   const handleBack = () => {
     if (router.canGoBack()) {
       router.back();
       return;
     }
-    router.replace("/edema_camera");
+    router.replace("/hair_skin_camera");
   };
 
   const handleNext = () => {
-    const result = validateAndBuildEdemaDentRemain(dentRemain);
+    const result = validateAndBuildEdemaDentRemain(hairIssue);
     if (!result.ok) {
       Alert.alert("Please fix the form", result.message);
       return;
     }
 
-    setEdemaDentRemain(result.value);
-    router.push("/hair_skin_instructions");
+    setHairIssue(result.value);
+    router.push("/PlaceHolderScreen");
+    console.log(
+      "assessment after hair assessment save:",
+      useAssessmentStore.getState().assessment,
+    );
   };
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        <AssessmentHeader title="Edema Assessment" onBack={handleBack} />
+        <AssessmentHeader title="Hair & Skin Assessment" onBack={handleBack} />
 
         <View style={styles.tealDivider} />
 
@@ -58,25 +60,25 @@ export default function EdemaReview() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.content}>
-            <CapturedVideoPreview uri={videoUri} />
+            <CapturedMediaPreview uri={photoUri} />
 
             <View style={styles.questionSection}>
               <Text style={styles.questionText}>
-                Did the dent remain after pressing?
+                Do you see discoloration, hair loss, or depigmentation?
               </Text>
 
               <View style={styles.optionColumn}>
                 <Pressable
                   style={styles.option}
-                  onPress={() => setDentRemain("yes")}
+                  onPress={() => setHairIssueSelection("yes")}
                 >
                   <View
                     style={[
                       styles.checkbox,
-                      dentRemain === "yes" && styles.checkboxChecked,
+                      hairIssue === "yes" && styles.checkboxChecked,
                     ]}
                   >
-                    {dentRemain === "yes" ? (
+                    {hairIssue === "yes" ? (
                       <Text style={styles.checkmark}>✓</Text>
                     ) : null}
                   </View>
@@ -85,15 +87,15 @@ export default function EdemaReview() {
 
                 <Pressable
                   style={styles.option}
-                  onPress={() => setDentRemain("no")}
+                  onPress={() => setHairIssueSelection("no")}
                 >
                   <View
                     style={[
                       styles.checkbox,
-                      dentRemain === "no" && styles.checkboxChecked,
+                      hairIssue === "no" && styles.checkboxChecked,
                     ]}
                   >
-                    {dentRemain === "no" ? (
+                    {hairIssue === "no" ? (
                       <Text style={styles.checkmark}>✓</Text>
                     ) : null}
                   </View>
@@ -102,15 +104,15 @@ export default function EdemaReview() {
 
                 <Pressable
                   style={styles.option}
-                  onPress={() => setDentRemain("unsure")}
+                  onPress={() => setHairIssueSelection("unsure")}
                 >
                   <View
                     style={[
                       styles.checkbox,
-                      dentRemain === "unsure" && styles.checkboxChecked,
+                      hairIssue === "unsure" && styles.checkboxChecked,
                     ]}
                   >
-                    {dentRemain === "unsure" ? (
+                    {hairIssue === "unsure" ? (
                       <Text style={styles.checkmark}>✓</Text>
                     ) : null}
                   </View>
@@ -138,10 +140,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background.muted,
   },
-  tealDivider: {
-    height: 14,
-    backgroundColor: colors.primary.teal,
-  },
   scrollView: {
     flex: 1,
   },
@@ -159,7 +157,17 @@ const styles = StyleSheet.create({
     color: colors.text.primary,
     fontSize: 34 / 2,
     fontWeight: "400",
-    marginBottom: 24,
+    marginBottom: 16,
+  },
+  tealDivider: {
+    height: 14,
+    backgroundColor: colors.primary.teal,
+  },
+  footer: {
+    backgroundColor: colors.primary.teal,
+    paddingHorizontal: 24,
+    paddingVertical: 18,
+    alignItems: "flex-end",
   },
   optionColumn: {
     gap: 18,
@@ -192,11 +200,5 @@ const styles = StyleSheet.create({
   optionText: {
     color: colors.text.primary,
     fontSize: 18,
-  },
-  footer: {
-    backgroundColor: colors.primary.teal,
-    paddingHorizontal: 24,
-    paddingVertical: 18,
-    alignItems: "flex-end",
   },
 });
