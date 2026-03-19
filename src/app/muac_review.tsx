@@ -43,11 +43,7 @@ export default function MuacReview() {
     }
 
     setMuacMeasurement(result.value);
-    router.push("/PlaceHolderScreen");
-    console.log(
-      "assessment after MUAC update:",
-      useAssessmentStore.getState().assessment,
-    );
+    router.push("/edema_instructions");
   };
 
   return (

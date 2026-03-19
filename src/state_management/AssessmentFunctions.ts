@@ -11,6 +11,8 @@ interface AssessmentStore {
   }) => void;
   setMuacPhotoUri: (photoUri: string | null) => void;
   setMuacMeasurement: (measurement: number | null) => void;
+  setEdemaVideoUri: (videoUri: string | null) => void;
+  setEdemaDentRemain: (dentRemain: Assessment["edema"]["dentRemain"]) => void;
   setEdemaAssessment: (data: Assessment["edema"]) => void;
   setHairAssessment: (data: Assessment["hair"]) => void;
   setDangerSigns: (data: Assessment["dangerSigns"]) => void;
@@ -48,6 +50,28 @@ export const useAssessmentStore = create<AssessmentStore>((set) => ({
         muac: {
           ...state.assessment.muac,
           measurement,
+        },
+      },
+    })),
+
+  setEdemaVideoUri: (videoUri) =>
+    set((state) => ({
+      assessment: {
+        ...state.assessment,
+        edema: {
+          ...state.assessment.edema,
+          videoUri,
+        },
+      },
+    })),
+
+  setEdemaDentRemain: (dentRemain) =>
+    set((state) => ({
+      assessment: {
+        ...state.assessment,
+        edema: {
+          ...state.assessment.edema,
+          dentRemain,
         },
       },
     })),
