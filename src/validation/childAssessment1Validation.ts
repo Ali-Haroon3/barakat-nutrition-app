@@ -35,7 +35,7 @@ export type ChildAssessment1ValidationResult =
   | ValidationSuccess
   | ValidationError;
 
-function parsePositiveNumber(
+function parseRequiredWholeNumber(
   raw: string,
   fieldLabel: string,
   errors: string[],
@@ -53,8 +53,13 @@ function parsePositiveNumber(
     return null;
   }
 
-  if (parsed <= 0) {
-    errors.push(`${fieldLabel} must be greater than 0.`);
+  if (!Number.isInteger(parsed)) {
+    errors.push(`${fieldLabel} must be a whole number.`);
+    return null;
+  }
+
+  if (parsed < 0) {
+    errors.push(`${fieldLabel} must be 0 or greater.`);
     return null;
   }
 
@@ -116,7 +121,7 @@ export function validateAndBuildChildAssessment1(
     if (!country) errors.push("Country is required.");
   }
 
-  const age = parsePositiveNumber(input.age, "Age", errors);
+  const age = parseRequiredWholeNumber(input.age, "Age", errors);
   const weight = parseOptionalPositiveNumber(input.weight, "Weight", errors);
   const height = parseOptionalPositiveNumber(input.height, "Height", errors);
 

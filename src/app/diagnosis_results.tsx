@@ -1,5 +1,5 @@
 import { router } from "expo-router";
-import React from "react";
+import React, { useEffect } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AssessmentHeader from "../components/AssessmentHeader";
@@ -7,15 +7,50 @@ import NextButton from "../components/NextButton";
 import { useAssessmentStore } from "../state_management/AssessmentFunctions";
 import { colors } from "../theme/theme";
 import {
-  getMuacClassification,
-  recommendedChwActions,
-} from "../utils/getMuacClassification";
+  getDiagnosisResult,
+  getRecommendedChwAction,
+  getStuntingRecommendedAction,
+  getStuntingStatusLabel,
+} from "../utils/getDiagnosis";
 
 export default function DiagnosisResults() {
   const assessment = useAssessmentStore((state) => state.assessment);
   const resetAssessment = useAssessmentStore((state) => state.resetAssessment);
+  const setDiagnosis = useAssessmentStore((state) => state.setDiagnosis);
   const childName = assessment.child.name.trim() || "Child";
-  const classification = getMuacClassification(assessment.muac.measurement);
+
+  const diagnosis = getDiagnosisResult(
+    assessment.muac.measurement,
+    assessment.edema.dentRemain,
+    assessment.child.age,
+    assessment.child.height,
+    assessment.child.gender,
+  );
+  const recommendedAction = getRecommendedChwAction(diagnosis.healthStatus);
+  const stuntingRecommendedAction = getStuntingRecommendedAction(
+    diagnosis.stuntingStatus,
+  );
+  const stuntingStatusLabel = getStuntingStatusLabel(diagnosis.stuntingStatus);
+
+  console.log("Diagnosis in diagnosis_results.tsx: ", diagnosis);
+
+  useEffect(() => {
+    setDiagnosis({
+      healthStatus: diagnosis.healthStatus,
+      heightForAgeZScore: diagnosis.heightForAgeZScore,
+      stuntingStatus: diagnosis.stuntingStatus,
+    });
+  }, [
+    diagnosis.healthStatus,
+    diagnosis.heightForAgeZScore,
+    diagnosis.stuntingStatus,
+    setDiagnosis,
+  ]);
+
+  console.log(
+    "Zustand Model Completed:",
+    useAssessmentStore.getState().assessment,
+  );
 
   const handleBack = () => {
     if (router.canGoBack()) {
@@ -46,7 +81,7 @@ export default function DiagnosisResults() {
           <View
             style={[
               styles.resultPanel,
-              { backgroundColor: classification.accentColor },
+              { backgroundColor: diagnosis.accentColor },
             ]}
           >
             <Text style={styles.resultLabel}>Classification Result</Text>
@@ -54,33 +89,50 @@ export default function DiagnosisResults() {
             <View style={styles.resultCenter}>
               <Text style={styles.childName}>{childName}</Text>
               <Text style={styles.classificationText}>
-                {classification.label}
+                {diagnosis.displayLabel}
               </Text>
               <Text style={styles.resultDescription}>
-                {classification.actionText}
+                {stuntingStatusLabel}
               </Text>
             </View>
           </View>
 
           <View style={styles.actionsSection}>
-            <Text style={styles.actionsTitle}>Recommended CHW Actions</Text>
+            <Text style={styles.actionsTitle}>Recommended CHW Action</Text>
           </View>
 
           <View style={styles.actionsBody}>
-            {recommendedChwActions.map((action) => (
-              <View key={action.label} style={styles.actionRow}>
+            <View style={styles.actionRow}>
+              <View
+                style={[
+                  styles.actionDot,
+                  { backgroundColor: recommendedAction.accentColor },
+                ]}
+              />
+              <Text style={styles.actionText}>
+                <Text style={styles.actionLabel}>
+                  {recommendedAction.label}
+                </Text>
+                <Text>{` → ${recommendedAction.actionText}`}</Text>
+              </Text>
+            </View>
+
+            {stuntingRecommendedAction ? (
+              <View style={styles.actionRow}>
                 <View
                   style={[
                     styles.actionDot,
-                    { backgroundColor: action.accentColor },
+                    { backgroundColor: stuntingRecommendedAction.accentColor },
                   ]}
                 />
                 <Text style={styles.actionText}>
-                  <Text style={styles.actionLabel}>{action.label}</Text>
-                  <Text>{` → ${action.actionText}`}</Text>
+                  <Text style={styles.actionLabel}>
+                    {stuntingRecommendedAction.label}
+                  </Text>
+                  <Text>{` → ${stuntingRecommendedAction.actionText}`}</Text>
                 </Text>
               </View>
-            ))}
+            ) : null}
           </View>
         </ScrollView>
 

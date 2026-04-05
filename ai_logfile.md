@@ -1,6 +1,6 @@
 # Project Overview
 
-- React Native / Expo app for a malnutrition assessment workflow.
+- React Native / Expo app for a child malnutrition assessment workflow.
 - Main flow:
   1. Home
   2. Parent/child information
@@ -9,168 +9,148 @@
   5. Hair/skin instruction -> camera -> review
   6. 7 danger-sign yes/no screens
   7. Final diagnosis / referral screen
-- State is stored in Zustand until the end of the assessment.
-
-# Tech Stack
-
-- Expo Router for navigation
-- React Native
-- Zustand for app state
-- `expo-camera` for photo/video capture
-- `expo-video` for review playback of captured video
+- State is stored in Zustand until `Finish Assessment`, which resets the store and returns to `/home`.
+- Tech stack:
+  - Expo Router
+  - React Native
+  - Zustand
+  - `expo-camera`
+  - `expo-video`
 
 # Architecture / Structure
 
-- Routes live in `src/app`.
-- Reusable UI components live in `src/components`.
+- Routes: `src/app`
+- Reusable UI components: `src/components`
 - Zustand model/store:
   - `src/state_management/Assessment.ts`
   - `src/state_management/AssessmentFunctions.ts`
   - `src/state_management/EmptyAssessment.ts`
-- Validation helpers live in `src/validation`.
-- Media persistence helper lives in `src/services/photoCaptureFlow.ts`.
-- Small pure business logic helper for diagnosis:
-  - `src/utils/getMuacClassification.ts`
+- Validation helpers: `src/validation`
+- Diagnosis/business logic: `src/utils/getDiagnosis.ts`
+- WHO height-for-age reference data:
+  - `src/data/lhfaBoys.ts`
+  - `src/data/lhfaGirls.ts`
+  - `src/data/lhfaTypes.ts`
 
-# Key Components
-
-- `AssessmentHeader`
-  - Shared app bar for non-home, non-camera screens.
-  - Includes back button, centered title, and `assets/icon_gold.png`.
-- `InstructionComponentScreen`
-  - Shared instruction-step layout for MUAC / edema / hair.
-- `CameraComponentScreen`
-  - Shared camera screen for photo and video capture.
-  - Photo uses external `onCapturePress`.
-  - Video manages record/stop internally and calls `onVideoRecorded`.
-- `CapturedMediaPreview`
-  - Image preview for MUAC/hair review screens.
-- `CapturedVideoPreview`
-  - Video preview using `expo-video` for edema review.
-- `DangerSignQuestionScreen`
-  - Shared yes/no danger-sign screen.
-  - Immediate save to Zustand on `Yes`/`No`.
+- Diagnosis flow architecture:
+  - `diagnosis_results.tsx` computes diagnosis from current assessment inputs using `getDiagnosisResult(...)`
+  - It then persists `assessment.diagnosis` via `setDiagnosis(...)`
+  - UI currently renders from the freshly computed `diagnosis` object, not from a second read of `assessment.diagnosis`
 
 # Key Decisions
 
-- Expo Router is used with explicit route files under `src/app`.
-- Reusable screen-level components were preferred over large config maps.
-- Parsing/validation is done in UI-layer validation helpers, not in Zustand store actions.
-- Store actions are intentionally focused:
-  - `setMuacPhotoUri`
-  - `setMuacMeasurement`
-  - `setEdemaVideoUri`
-  - `setEdemaDentRemain`
-  - `setHairPhotoUri`
-  - `setHairIssue`
-  - `setDangerSign`
-- Parent address was changed from a single string to a nested object:
+- Explicit route files under `src/app` are preferred over heavy config-driven routing.
+- Validation/parsing stays in UI-layer validation helpers instead of inside Zustand actions.
+- Reusable screen components are preferred over large config maps.
+- Parent address is structured:
   - `parent.address.streetAddress`
   - `parent.address.city`
   - `parent.address.province`
   - `parent.address.country`
 - Address validation is group-based:
-  - all four blank is allowed
-  - if any one is filled, all four become required
-- `weight` and `height` are optional in the first form.
-- Danger signs are modeled as 7 separate route files that all reuse one component.
-- Final diagnosis is currently based only on MUAC.
+  - all blank is allowed
+  - if any field is filled, all become required
+
+- Current diagnosis model is split into:
+  - `healthStatus`: `"Healthy" | "MAM" | "SAM"`
+  - `heightForAgeZScore`: `number | null`
+  - `stuntingStatus`: `"not-stunted" | "moderately-stunted" | "severely-stunted" | "unknown"`
+- `assessment.diagnosis` is persisted in Zustand; this is the current computed diagnosis section.
+
+- Health status logic:
+  - edema `yes` => `SAM`
+  - else MUAC `< 11.5` => `SAM`
+  - else MUAC `< 12.5` => `MAM`
+  - else => `Healthy`
+
+- Stunting logic:
+  - HAZ is computed from WHO LMS tables (`L`, `M`, `S`) using local sex-specific data arrays for months `0..60`
+  - Whole-month age is required for intake validation
+  - If age/height/gender is missing, age is non-integer, or age is outside `0..60`, HAZ returns `null`
+  - Stunting thresholds:
+    - `HAZ >= -2` => `not-stunted`
+    - `-3 <= HAZ < -2` => `moderately-stunted`
+    - `HAZ < -3` => `severely-stunted`
+
+- Display-only diagnosis override:
+  - if `healthStatus === "Healthy"` and `stuntingStatus` is moderate or severe
+  - diagnosis box shows `Stunted` instead of `Healthy`
+  - diagnosis box background uses light blue (`colors.status.info`)
+  - persisted `healthStatus` remains `Healthy`
+
+- Diagnosis UI decisions:
+  - Colored diagnosis box shows:
+    - child name
+    - display label (`Healthy` / `MAM` / `SAM` / display-only `Stunted`)
+    - human-readable stunting line
+  - Lower `Recommended CHW Action` section:
+    - always shows one row for `healthStatus`
+    - conditionally appends a second row for moderate/severe stunting
+    - stunting action copy is placeholder for now
 
 # Current State
 
-- Implemented routes:
+- Implemented routes include:
   - `src/app/home.tsx`
   - `src/app/parent_child_information.tsx`
-  - `src/app/muac_instructions.tsx`
-  - `src/app/muac_camera.tsx`
-  - `src/app/muac_review.tsx`
-  - `src/app/edema_instructions.tsx`
-  - `src/app/edema_camera.tsx`
-  - `src/app/edema_review.tsx`
-  - `src/app/hair_skin_instructions.tsx`
-  - `src/app/hair_skin_camera.tsx`
-  - `src/app/hair_skin_review.tsx`
+  - `src/app/muac_*`
+  - `src/app/edema_*`
+  - `src/app/hair_skin_*`
   - `src/app/danger_signs/*`
   - `src/app/diagnosis_results.tsx`
-- Home screen:
-  - contains `multicolor_logo.png` between welcome text and CTA
-  - bottom nav exists only on `/home` and `/PlaceHolderScreen`
+
 - Parent/child form:
-  - uses structured parent address
-  - uses popup validation only
-- MUAC review:
-  - image preview
-  - measurement input
-  - validation required
-- Edema review:
-  - video preview
-  - `Yes/No/Unsure`
-- Hair/skin review:
-  - image preview
-  - `Yes/No/Unsure`
-- Danger-sign flow:
-  - 7 route files under `src/app/danger_signs`
-  - first question entered from `hair_skin_review`
-  - last question routes to diagnosis screen
-- Diagnosis screen:
-  - reads child name and MUAC from Zustand
-  - computes classification from MUAC only
-  - shows static CHW actions list
-  - `Finish Assessment` resets Zustand and returns to `/home`
+  - popup validation only (`Alert.alert`)
+  - `age` must be a whole number `>= 0`
+  - `gender` is required
+  - `height` and `weight` remain optional
 
-# Current Data Model
+- Current Zustand data model includes:
+  - `parent`
+  - `child`
+  - `muac`
+  - `edema`
+  - `hair`
+  - `dangerSigns`
+  - `diagnosis`
 
-- `ParentInformation`
-  - `name`
-  - `phone`
-  - `address: { streetAddress, city, province, country }`
-  - `whatsappOptIn`
-- `ChildInformation`
-  - `name`
-  - `age`
-  - `weight`
-  - `height`
-  - `gender`
-- `MuacAssessment`
-  - `photoUri`
-  - `measurement`
-- `EdemaAssessment`
-  - `videoUri`
-  - `dentRemain`
-- `HairAssessment`
-  - `photoUri`
-  - `hairIssue`
-- `DangerSigns`
-  - `eatingLess`
-  - `unusuallySleepy`
-  - `dehydrated`
-  - `fever`
-  - `breathingDifficulty`
-  - `skinInfection`
-  - `diarrheaVomiting`
+- Diagnosis screen currently:
+  - computes diagnosis from MUAC + edema + age + height + gender
+  - persists `assessment.diagnosis`
+  - shows only one health-status CHW action row plus an optional second stunting row
+  - uses placeholder text for moderate/severe stunting recommendations
+
+- Old diagnosis helper was replaced:
+  - previous `src/utils/getMuacClassification.ts` is no longer the active logic
+  - active helper is `src/utils/getDiagnosis.ts`
 
 # Known Issues / Open Problems
 
-- Diagnosis logic only uses MUAC right now; edema/hair/danger-signs are not part of the classification yet.
-- Some screen naming/history is inconsistent from earlier iterations:
-  - `PlaceHolderScreen` still exists as a temporary route
-  - older route naming was moved around; danger-sign pages now live in `src/app/danger_signs`
-- The app currently depends on captured media being saved locally and stored as URI in Zustand until end-of-flow upload; Supabase upload has not been implemented.
+- Hair/skin review and danger signs are still not part of diagnosis logic.
+- Stunting-specific recommended action text is still placeholder copy.
+- `diagnosis_results.tsx` still contains debug `console.log(...)` calls.
+- `getStuntingStatusLabel()` contains a typo for the unknown state:
+  - `"Unknonw stunted status"`
+- `recommendedChwActions` is still exported from `getDiagnosis.ts` but is no longer used by the diagnosis screen.
+- `src/app/PlaceHolderScreen.tsx` still exists.
+- No test files are currently present in `src`, even though several diagnosis/validation changes would benefit from tests.
+- The app still stores captured media locally as URIs in Zustand; end-of-flow upload/persistence is not implemented.
 
 # Next Steps
 
-- Replace remaining temporary uses of `PlaceHolderScreen`.
-- Implement upload/persistence strategy at end of assessment (likely Supabase).
-- Expand diagnosis logic beyond MUAC if needed.
-- Add any missing review/summary or saved-progress behavior.
+- Replace placeholder stunting recommendation text with final copy.
+- Remove diagnosis-screen debug logs.
+- Fix the unknown stunting label typo.
+- Clean up unused exports / temporary routes if no longer needed.
+- Implement end-of-flow upload/persistence strategy (likely Supabase).
 
 # Constraints / Preferences
 
-- User prefers:
+- User preferences:
   - pragmatic minimal changes
   - reusable screen components over heavy abstraction/config maps
-  - popup validation (`Alert.alert`) instead of inline field styling
+  - popup validation (`Alert.alert`) instead of inline validation styling
   - explicit route files are acceptable
-- Use theme colors already defined in `src/theme/theme.ts`.
-- Avoid unnecessary dependencies and redundant styles.
-- Keep logs / summaries concise and optimized for fast handoff to another AI. Only update logfile when prompted to do so.
+- Prefer existing theme colors from `src/theme/theme.ts`.
+- Avoid unnecessary dependencies and redundant styling.
+- Keep project logs concise and optimized for fast AI handoff.

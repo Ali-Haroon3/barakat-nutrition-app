@@ -33,10 +33,6 @@ export default function DangerSignQuestionScreen({
     setSelectedValue(value);
     setDangerSign(dangerKey, value);
     onNext();
-    console.log(
-      "assessment after hair assessment save:",
-      useAssessmentStore.getState().assessment,
-    );
   };
 
   return (

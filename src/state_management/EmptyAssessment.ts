@@ -45,4 +45,10 @@ export const emptyAssessment: Assessment = {
     skinInfection: null,
     diarrheaVomiting: null,
   },
+
+  diagnosis: {
+    healthStatus: "Healthy",
+    heightForAgeZScore: null,
+    stuntingStatus: "unknown",
+  },
 };

@@ -1,5 +1,11 @@
 export type YesNo = "yes" | "no";
 export type YesNoUnsure = "yes" | "no" | "unsure";
+export type HealthStatus = "Healthy" | "MAM" | "SAM";
+export type StuntingStatus =
+  | "not-stunted"
+  | "moderately-stunted"
+  | "severely-stunted"
+  | "unknown";
 
 export interface ParentAddress {
   streetAddress: string;
@@ -48,6 +54,12 @@ export interface DangerSigns {
   diarrheaVomiting: YesNo | null;
 }
 
+export interface DiagnosisAssessment {
+  healthStatus: HealthStatus;
+  heightForAgeZScore: number | null;
+  stuntingStatus: StuntingStatus;
+}
+
 export interface Assessment {
   parent: ParentInformation;
   child: ChildInformation;
@@ -55,4 +67,5 @@ export interface Assessment {
   edema: EdemaAssessment;
   hair: HairAssessment;
   dangerSigns: DangerSigns;
+  diagnosis: DiagnosisAssessment;
 }

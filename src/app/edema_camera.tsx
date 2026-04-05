@@ -34,10 +34,6 @@ export default function EdemaCamera() {
         Alert.alert("Recording failed", message);
       },
     });
-    console.log(
-      "assessment after edema video save:",
-      useAssessmentStore.getState().assessment,
-    );
   };
 
   return (

@@ -22,6 +22,7 @@ interface AssessmentStore {
     value: Assessment["dangerSigns"][K],
   ) => void;
   setDangerSigns: (data: Assessment["dangerSigns"]) => void;
+  setDiagnosis: (data: Assessment["diagnosis"]) => void;
 
   resetAssessment: () => void;
 }
@@ -136,6 +137,14 @@ export const useAssessmentStore = create<AssessmentStore>((set) => ({
       assessment: {
         ...state.assessment,
         dangerSigns: data,
+      },
+    })),
+
+  setDiagnosis: (data) =>
+    set((state) => ({
+      assessment: {
+        ...state.assessment,
+        diagnosis: data,
       },
     })),
 
